@@ -1,0 +1,9 @@
+*.log
+*.tar
+*.tar.gz
+*.tar.bz2
+.idea/*
+cmd/bin
+conf.yaml
+conf_test.yaml
+.migrate_scripts
