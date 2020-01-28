@@ -7,10 +7,9 @@ import (
 
 type Db interface {
 	// banner
-	BannerCreate(ctx context.Context, obj *entities.Banner) error
-	BannerList(ctx context.Context, pars entities.BannerFilterPars) ([]*entities.Banner, error)
-	BannerDelete(ctx context.Context, pars entities.BannerFilterPars) error
-
-	// stat
-	StatIncShowCount(ctx context.Context, pars *entities.StatIncPars) error
+	BannerCreate(ctx context.Context, pars entities.BannerCreatePars) error
+	BannerDelete(ctx context.Context, pars entities.BannerDeletePars) error
+	BannerList(ctx context.Context, pars entities.BannerListPars) ([]*entities.Banner, error)
+	BannerIncShowCount(ctx context.Context, pars entities.BannerStatIncPars) error
+	BannerIncClickCount(ctx context.Context, pars entities.BannerStatIncPars) error
 }

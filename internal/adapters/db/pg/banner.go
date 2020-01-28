@@ -5,11 +5,11 @@ import (
 	"github.com/rendau/barot/internal/domain/entities"
 )
 
-func (d *St) BannerCreate(ctx context.Context, obj *entities.Banner) error {
-	_, err := d.db.ExecContext(ctx, `
+func (d *St) BannerCreate(ctx context.Context, pars entities.BannerCreatePars) error {
+	_, err := d.Db.ExecContext(ctx, `
 		insert into banner(id, slot_id, note)
 		values($1, $2, $3)
-	`, obj.ID, obj.SlotID, obj.Note)
+	`, pars.ID, pars.SlotID, pars.Note)
 	if err != nil {
 		d.lg.Errorw(ErrMsg, err)
 		return err
@@ -18,37 +18,32 @@ func (d *St) BannerCreate(ctx context.Context, obj *entities.Banner) error {
 	return nil
 }
 
-func (d *St) BannerList(ctx context.Context, pars entities.BannerFilterPars) ([]*entities.Banner, error) {
-	args := map[string]interface{}{}
+func (d *St) BannerDelete(ctx context.Context, pars entities.BannerDeletePars) error {
+	var err error
 
-	if pars.ID != nil {
-		args["id"] = *pars.ID
-	}
-	if pars.SlotID != nil {
-		args["slot_id"] = *pars.SlotID
-	}
-
-	qWhere := ``
-	for k := range args {
-		if qWhere != `` {
-			qWhere += ` and`
-		}
-		qWhere += ` ` + k + ` = :` + k
-	}
-
-	stmt, err := d.db.PrepareNamedContext(ctx, `
-		select b.id, b.slot_id, b.note
-		from banner b
-		where `+qWhere+`
-		order by b.id
-	`)
+	_, err = d.Db.ExecContext(ctx, `
+		delete from banner
+		where id = $1 and slot_id = $2
+	`, pars.ID, pars.SlotID)
 	if err != nil {
 		d.lg.Errorw(ErrMsg, err)
-		return nil, err
+		return err
 	}
-	defer stmt.Close()
 
-	rows, err := stmt.QueryxContext(ctx, args)
+	return nil
+}
+
+func (d *St) BannerList(ctx context.Context, pars entities.BannerListPars) ([]*entities.Banner, error) {
+	rows, err := d.Db.QueryxContext(ctx, `
+		select b.id,
+		       b.slot_id,
+		       coalesce(s.show_cnt, 0),
+		       coalesce(s.click_cnt, 0)
+		from banner b
+			left join stat s on s.banner_id = b.id and s.slot_id = b.slot_id and s.usr_type_id = $2
+		where b.slot_id = $1
+		order by b.id
+	`, pars.SlotID, pars.UsrTypeID)
 	if err != nil {
 		d.lg.Errorw(ErrMsg, err)
 		return nil, err
@@ -62,7 +57,8 @@ func (d *St) BannerList(ctx context.Context, pars entities.BannerFilterPars) ([]
 		err = rows.Scan(
 			&item.ID,
 			&item.SlotID,
-			&item.Note,
+			&item.ShowCnt,
+			&item.ClickCnt,
 		)
 		if err != nil {
 			d.lg.Errorw(ErrMsg, err)
@@ -78,41 +74,30 @@ func (d *St) BannerList(ctx context.Context, pars entities.BannerFilterPars) ([]
 	return items, nil
 }
 
-func (d *St) BannerDelete(ctx context.Context, pars entities.BannerFilterPars) error {
-	var err error
+func (d *St) BannerIncShowCount(ctx context.Context, pars entities.BannerStatIncPars) error {
+	return d.bannerIncCol(ctx, "show_cnt", pars)
+}
 
-	args := map[string]interface{}{}
+func (d *St) BannerIncClickCount(ctx context.Context, pars entities.BannerStatIncPars) error {
+	return d.bannerIncCol(ctx, "click_cnt", pars)
+}
 
-	if pars.ID != nil {
-		args["id"] = *pars.ID
-	}
-	if pars.SlotID != nil {
-		args["slot_id"] = *pars.SlotID
-	}
-
-	if len(args) == 0 {
-		return nil
+func (d *St) bannerIncCol(ctx context.Context, col string, pars entities.BannerStatIncPars) error {
+	v := pars.Value
+	if v < 1 {
+		v = 1
 	}
 
-	qWhere := ``
-	for k := range args {
-		if qWhere != `` {
-			qWhere += ` and`
-		}
-		qWhere += ` ` + k + ` = :` + k
-	}
-
-	stmt, err := d.db.PrepareNamedContext(ctx, `
-		delete from banner
-		where `+qWhere+`
-	`)
-	if err != nil {
-		d.lg.Errorw(ErrMsg, err)
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, args)
+	_, err := d.Db.ExecContext(ctx, `
+		with q1 as (
+		    update stat set `+col+` = `+col+` + $4
+		    where banner_id = $1 and slot_id = $2 and usr_type_id = $3
+		    returning banner_id
+		)
+		insert into stat(banner_id, slot_id, usr_type_id, `+col+`)
+		select $1, $2, $3, $4
+		where not exists(select * from q1)
+	`, pars.ID, pars.SlotID, pars.UsrTypeID, v)
 	if err != nil {
 		d.lg.Errorw(ErrMsg, err)
 		return err

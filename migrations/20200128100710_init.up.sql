@@ -1,17 +1,17 @@
 create table banner
 (
-    id      bigint not null,
+    id      bigint not null
+        constraint banner_pk primary key,
     slot_id bigint not null,
-    note    text   not null default '',
-
-    constraint country_pk primary key (id)
+    note    text   not null default ''
 );
 create index banner_slot_id_idx
     on banner (slot_id);
 
 create table stat
 (
-    banner_id   bigint not null,
+    banner_id   bigint not null
+        constraint stat_fk_banner_id references banner on update cascade on delete cascade,
     slot_id     bigint not null,
     usr_type_id bigint not null,
     show_cnt    bigint not null default 0,

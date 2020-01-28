@@ -1,23 +1,15 @@
 package core
 
-import (
-	"github.com/rendau/barot/internal/constant"
-	"math"
-)
+import "github.com/rendau/barot/internal/interfaces"
 
 type St struct {
+	lg interfaces.Logger
+	db interfaces.Db
 }
 
-func NewSt() *St {
-	return &St{}
-}
-
-// MabCalc is calculates "multiarmed bandit" algorithm by input args
-func (c *St) MabCalc(bannerShowCount, bannerClickCount, allBannersShowCount int64) float64 {
-	if bannerShowCount == 0 {
-		return constant.MabCalcInitValue
+func NewSt(lg interfaces.Logger, db interfaces.Db) *St {
+	return &St{
+		lg: lg,
+		db: db,
 	}
-
-	return (float64(bannerClickCount) / float64(bannerShowCount)) +
-		math.Sqrt(2*math.Log(float64(allBannersShowCount))/float64(bannerShowCount))
 }
