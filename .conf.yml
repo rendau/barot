@@ -1,0 +1,3 @@
+http_listen: ":80"
+pg_dsn: "postgres://user:pass@host:5432/db?sslmode=disable"
+log_level: "warn"

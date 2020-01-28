@@ -4,6 +4,6 @@
 *.tar.bz2
 .idea/*
 cmd/bin
-conf.yaml
-conf_test.yaml
+conf.yml
+conf_test.yml
 .migrate_scripts

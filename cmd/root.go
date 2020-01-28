@@ -2,33 +2,27 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
+	"os"
 )
-
-var rootCmd = &cobra.Command{
-	Use: "barot",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello world!")
-	},
-}
 
 // Execute - executes root command
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+	loadConf()
+	fmt.Println("Hello world!")
+}
+
+func loadConf() {
+	confFilePath := os.Getenv("CONF_PATH")
+	if confFilePath != "" {
+		viper.SetConfigFile(confFilePath)
+		err := viper.ReadInConfig()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-}
 
-func init() {
-	cobra.OnInitialize(initConfig)
-}
-
-func initConfig() {
+	// env vars are in priority
 	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }
