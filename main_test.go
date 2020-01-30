@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/rendau/barot/internal/adapters/db/pg"
 	"github.com/rendau/barot/internal/adapters/logger/zap"
+	mqMock "github.com/rendau/barot/internal/adapters/mq/mock"
 	"github.com/rendau/barot/internal/constant"
 	"github.com/rendau/barot/internal/domain/core"
 	"github.com/rendau/barot/internal/domain/entities"
@@ -20,6 +21,7 @@ var (
 	app = struct {
 		lg *zap.St
 		db *pg.St
+		mq *mqMock.St
 		cr *core.St
 	}{}
 )
@@ -49,20 +51,19 @@ func TestMain(m *testing.M) {
 		app.lg.Fatal(err)
 	}
 
+	app.mq = mqMock.NewSt()
+
 	app.cr = core.NewSt(
 		app.lg,
 		app.db,
+		app.mq,
 	)
-
-	if err != nil {
-		app.lg.Fatal(err)
-	}
 
 	ec := m.Run()
 	os.Exit(ec)
 }
 
-func cleanDb() {
+func cleanCtx() {
 	_, err := app.db.Db.Exec(`
 		truncate stat restart identity cascade
 	`)
@@ -76,6 +77,8 @@ func cleanDb() {
 	if err != nil {
 		app.lg.Fatal(err)
 	}
+
+	app.mq.Clean()
 }
 
 func TestMabCalc(t *testing.T) {
@@ -86,7 +89,7 @@ func TestMabCalc(t *testing.T) {
 func TestBannerCreation(t *testing.T) {
 	var err error
 
-	cleanDb()
+	cleanCtx()
 
 	ctx := context.Background()
 
@@ -149,7 +152,7 @@ func TestBannerCreation(t *testing.T) {
 func TestBannerSelect(t *testing.T) {
 	var err error
 
-	cleanDb()
+	cleanCtx()
 
 	ctx := context.Background()
 
@@ -201,7 +204,7 @@ func selectBannerInLoop(ctx context.Context, slotId, usrTypeId int64, n int) (ma
 	var err error
 
 	for i := 0; i < n; i++ {
-		_, err = app.cr.BannerSelectId(ctx, entities.BannerListPars{
+		_, err = app.cr.BannerSelectId(ctx, entities.BannerSelectPars{
 			SlotID:    slotId,
 			UsrTypeID: usrTypeId,
 		})
@@ -225,4 +228,54 @@ func selectBannerInLoop(ctx context.Context, slotId, usrTypeId int64, n int) (ma
 	}
 
 	return res, nil
+}
+
+func TestBannerEvent(t *testing.T) {
+	var err error
+
+	cleanCtx()
+
+	ctx := context.Background()
+
+	var bannerId int64 = 1
+	var selectedBannerId int64
+	var slotId int64 = 1
+	var usrTypeId int64 = 1
+	note := "some banner note"
+
+	err = app.cr.BannerCreate(ctx, entities.BannerCreatePars{
+		ID:     bannerId,
+		SlotID: slotId,
+		Note:   note,
+	})
+	require.Nil(t, err)
+
+	selectedBannerId, err = app.cr.BannerSelectId(ctx, entities.BannerSelectPars{
+		SlotID:    slotId,
+		UsrTypeID: usrTypeId,
+	})
+	require.Nil(t, err)
+	require.Equal(t, bannerId, selectedBannerId)
+
+	events := app.mq.PullAll()
+	require.Equal(t, 1, len(events))
+	require.Equal(t, constant.BannerEventTypeShow, events[0].Type)
+	require.Equal(t, selectedBannerId, events[0].BannerID)
+	require.Equal(t, slotId, events[0].SlotID)
+	require.Equal(t, usrTypeId, events[0].UsrTypeID)
+
+	err = app.cr.BannerAddClick(ctx, entities.BannerStatIncPars{
+		ID:        bannerId,
+		SlotID:    slotId,
+		UsrTypeID: usrTypeId,
+		Value:     2,
+	})
+	require.Nil(t, err)
+
+	events = app.mq.PullAll()
+	require.Equal(t, 1, len(events))
+	require.Equal(t, constant.BannerEventTypeClick, events[0].Type)
+	require.Equal(t, selectedBannerId, events[0].BannerID)
+	require.Equal(t, slotId, events[0].SlotID)
+	require.Equal(t, usrTypeId, events[0].UsrTypeID)
 }

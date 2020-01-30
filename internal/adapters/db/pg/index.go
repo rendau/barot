@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+	"fmt"
 	"github.com/rendau/barot/internal/adapters/logger/zap"
 
 	// driver for migration
@@ -24,6 +25,10 @@ type St struct {
 // NewSt - creates new St instance
 func NewSt(dsn string, lg *zap.St) (*St, error) {
 	var err error
+
+	if dsn == "" {
+		return nil, fmt.Errorf("bad dsn for postgresql")
+	}
 
 	res := &St{
 		lg: lg,

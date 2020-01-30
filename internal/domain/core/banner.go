@@ -5,6 +5,7 @@ import (
 	"github.com/rendau/barot/internal/constant"
 	"github.com/rendau/barot/internal/domain/entities"
 	"math"
+	"time"
 )
 
 func (c *St) BannerCreate(ctx context.Context, obj entities.BannerCreatePars) error {
@@ -15,8 +16,11 @@ func (c *St) BannerDelete(ctx context.Context, pars entities.BannerDeletePars) e
 	return c.db.BannerDelete(ctx, pars)
 }
 
-func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerListPars) (int64, error) {
-	banners, err := c.db.BannerList(ctx, pars)
+func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerSelectPars) (int64, error) {
+	banners, err := c.db.BannerList(ctx, entities.BannerListPars{
+		SlotID:    pars.SlotID,
+		UsrTypeID: pars.UsrTypeID,
+	})
 	if err != nil {
 		return 0, err
 	}
@@ -48,13 +52,43 @@ func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerListPars) (
 			SlotID:    pars.SlotID,
 			UsrTypeID: pars.UsrTypeID,
 		})
+		if err != nil {
+			return 0, err
+		}
+
+		err = c.mq.PublishBannerEvent(&entities.BannerEvent{
+			Type:      constant.BannerEventTypeShow,
+			BannerID:  selectedBannerId,
+			SlotID:    pars.SlotID,
+			UsrTypeID: pars.UsrTypeID,
+			DateTime:  time.Now(),
+		})
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	return selectedBannerId, nil
 }
 
 func (c *St) BannerAddClick(ctx context.Context, pars entities.BannerStatIncPars) error {
-	return c.db.BannerIncClickCount(ctx, pars)
+	err := c.db.BannerIncClickCount(ctx, pars)
+	if err != nil {
+		return err
+	}
+
+	err = c.mq.PublishBannerEvent(&entities.BannerEvent{
+		Type:      constant.BannerEventTypeClick,
+		BannerID:  pars.ID,
+		SlotID:    pars.SlotID,
+		UsrTypeID: pars.UsrTypeID,
+		DateTime:  time.Now(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // MabCalc is calculates "multiarmed bandit" algorithm by input args

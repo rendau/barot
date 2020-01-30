@@ -7,8 +7,14 @@ import (
 
 func (d *St) BannerCreate(ctx context.Context, pars entities.BannerCreatePars) error {
 	_, err := d.Db.ExecContext(ctx, `
+		with u1 as (
+		    update banner set note = $3
+		    where id=$1 and slot_id=$2
+		    returning id
+		)
 		insert into banner(id, slot_id, note)
-		values($1, $2, $3)
+		select $1, $2, $3
+		where not exists(select * from u1)
 	`, pars.ID, pars.SlotID, pars.Note)
 	if err != nil {
 		d.lg.Errorw(ErrMsg, err)

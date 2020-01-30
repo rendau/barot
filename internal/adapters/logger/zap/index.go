@@ -124,6 +124,6 @@ func (lg *St) Debugw(msg string, args ...interface{}) {
 func (lg *St) Sync() {
 	err := lg.sl.Sync()
 	if err != nil {
-		log.Fatalln("Fail to sync zap-logger", err)
+		log.Println("Fail to sync zap-logger", err)
 	}
 }

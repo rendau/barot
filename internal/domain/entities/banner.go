@@ -1,5 +1,10 @@
 package entities
 
+import (
+	"github.com/rendau/barot/internal/constant"
+	"time"
+)
+
 // Banner is type for banner
 type Banner struct {
 	ID       int64
@@ -19,6 +24,11 @@ type BannerDeletePars struct {
 	SlotID int64
 }
 
+type BannerSelectPars struct {
+	SlotID    int64
+	UsrTypeID int64
+}
+
 type BannerListPars struct {
 	SlotID    int64
 	UsrTypeID int64
@@ -29,4 +39,12 @@ type BannerStatIncPars struct {
 	SlotID    int64
 	UsrTypeID int64
 	Value     int64
+}
+
+type BannerEvent struct {
+	Type      constant.BannerEventType
+	BannerID  int64
+	SlotID    int64
+	UsrTypeID int64
+	DateTime  time.Time
 }
