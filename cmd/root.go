@@ -5,7 +5,7 @@ import (
 	"github.com/rendau/barot/internal/adapters/db/pg"
 	"github.com/rendau/barot/internal/adapters/http_api"
 	"github.com/rendau/barot/internal/adapters/logger/zap"
-	mqMock "github.com/rendau/barot/internal/adapters/mq/mock"
+	"github.com/rendau/barot/internal/adapters/mq/rmq"
 	"github.com/rendau/barot/internal/domain/core"
 	"github.com/spf13/viper"
 	"log"
@@ -39,7 +39,13 @@ func Execute() {
 		lg.Fatal(err)
 	}
 
-	mq := mqMock.NewSt()
+	mq, err := rmq.NewSt(
+		viper.GetString("rmq_dsn"),
+		lg,
+	)
+	if err != nil {
+		lg.Fatal(err)
+	}
 
 	cr := core.NewSt(
 		lg,

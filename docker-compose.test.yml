@@ -9,7 +9,7 @@ services:
     expose:
       - "5432"
     networks:
-      barot-net:
+      barot-test-net:
 
   barot_migration:
     image: migrate/migrate:latest
@@ -17,13 +17,13 @@ services:
     entrypoint:
       - "sh"
       - "-c"
-      - "`while ! /migrate -path /migrations -database postgres://postgres:12345@barot_pg:5432/postgres?sslmode=disable up; do sleep 1; done;`"
+      - "`while ! /migrate -path /migrations -database postgres://postgres:12345@barot_pg:5432/postgres?sslmode=disable up; do sleep 1; done; sleep 3600;`"
     volumes:
       - "./migrations:/migrations"
     depends_on:
       - barot_pg
     networks:
-      barot-net:
+      barot-test-net:
 
   barot_rmq:
     image: rabbitmq:management-alpine
@@ -34,7 +34,7 @@ services:
       - "5672"
       - "15672"
     networks:
-      barot-net:
+      barot-test-net:
 
   barot_api:
     image: barot_api:latest
@@ -52,8 +52,19 @@ services:
       - barot_migration
       - barot_rmq
     networks:
-      barot-net:
+      barot-test-net:
+
+  barot_tests:
+    container_name: barot_tests
+    image: barot_tests:latest
+    build: ./tests
+    environment:
+      API_URL: http://barot_api
+    depends_on:
+      - barot_api
+    networks:
+      barot-test-net:
 
 networks:
-  barot-net:
-    name: barot-net
+  barot-test-net:
+    name: barot-test-net

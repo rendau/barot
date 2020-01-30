@@ -17,6 +17,10 @@ func (a *Api) createRouter() http.Handler {
 	sr.HandleFunc("/select/{slot_id:[0-9]+}/{usr_type_id:[0-9]+}", a.hBannerSelect).Methods("GET")
 	sr.HandleFunc("/add_click/{slot_id:[0-9]+}/{banner_id:[0-9]+}/{usr_type_id:[0-9]+}", a.hBannerAddClick).Methods("POST")
 
+	r.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}).Methods("GET")
+
 	// middleware
 	h := http.Handler(r)
 	h = cors.New(cors.Options{
