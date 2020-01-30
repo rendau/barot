@@ -5,6 +5,10 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
+      - name: start pg
+        run: |
+          docker-compose -f docker-compose.pg.yml up -d
+
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
@@ -31,9 +35,11 @@ jobs:
           ./golangci-lint run -v --enable-all
 
 #      - name: go test
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #        run: |
 #          go test
-#
+
 #      - name: go test -race
 #        run: |
 #          go test -race
