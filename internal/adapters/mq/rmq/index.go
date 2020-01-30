@@ -3,10 +3,11 @@ package rmq
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/rendau/barot/internal/domain/entities"
 	"github.com/rendau/barot/internal/interfaces"
 	"github.com/streadway/amqp"
-	"time"
 )
 
 const (
@@ -29,7 +30,9 @@ func NewSt(dsn string, lg interfaces.Logger) (*St, error) {
 		lg: lg,
 	}
 
-	connectionCtx, _ := context.WithTimeout(context.Background(), connectionWaitTimeout)
+	connectionCtx, connectionCtxCancel := context.WithTimeout(context.Background(), connectionWaitTimeout)
+	defer connectionCtxCancel()
+
 	res.con, err = res.connectionWait(connectionCtx, dsn)
 	if err != nil {
 		res.lg.Errorw("Fail to connect", err)
@@ -60,6 +63,7 @@ func NewSt(dsn string, lg interfaces.Logger) (*St, error) {
 
 func (q *St) connectionWait(ctx context.Context, dsn string) (*amqp.Connection, error) {
 	var err error
+
 	var res *amqp.Connection
 
 	for {
@@ -67,6 +71,7 @@ func (q *St) connectionWait(ctx context.Context, dsn string) (*amqp.Connection, 
 		if err == nil || ctx.Err() != nil {
 			break
 		}
+
 		time.Sleep(time.Second)
 	}
 
@@ -113,6 +118,7 @@ func (q *St) Stop() {
 	if err != nil {
 		q.lg.Errorw("Fail to close channel", err)
 	}
+
 	err = q.con.Close()
 	if err != nil {
 		q.lg.Errorw("Fail to close connection", err)

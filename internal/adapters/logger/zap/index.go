@@ -1,8 +1,9 @@
 package zap
 
 import (
-	"go.uber.org/zap"
 	"log"
+
+	"go.uber.org/zap"
 )
 
 const callerSkip = 1
@@ -17,7 +18,7 @@ func NewSt(level string, debug, test bool) (*St, error) {
 
 	logger := &St{}
 
-	if test {
+	if test { //nolint
 		logger.l = zap.NewExample(zap.AddCallerSkip(callerSkip))
 	} else if debug {
 		logger.l, err = zap.NewDevelopment(zap.AddCallerSkip(callerSkip))
@@ -30,16 +31,12 @@ func NewSt(level string, debug, test bool) (*St, error) {
 		switch level {
 		case "error":
 			cfg.Level.SetLevel(zap.ErrorLevel)
-			break
 		case "warn": // default
 			cfg.Level.SetLevel(zap.WarnLevel)
-			break
 		case "info":
 			cfg.Level.SetLevel(zap.InfoLevel)
-			break
 		case "debug":
 			cfg.Level.SetLevel(zap.DebugLevel)
-			break
 		default:
 			cfg.Level.SetLevel(zap.WarnLevel)
 		}
@@ -64,7 +61,7 @@ func (lg *St) Fatalf(tmpl string, args ...interface{}) {
 }
 
 func (lg *St) Fatalw(msg string, err interface{}, args ...interface{}) {
-	kvs := make([]interface{}, 0, len(args)+2)
+	kvs := make([]interface{}, 0, len(args)+2) //nolint
 	kvs = append(kvs, "error", err)
 	kvs = append(kvs, args...)
 	lg.sl.Fatalw(msg, kvs...)
@@ -79,7 +76,7 @@ func (lg *St) Errorf(tmpl string, args ...interface{}) {
 }
 
 func (lg *St) Errorw(msg string, err interface{}, args ...interface{}) {
-	kvs := make([]interface{}, 0, len(args)+2)
+	kvs := make([]interface{}, 0, len(args)+2) //nolint
 	kvs = append(kvs, "error", err)
 	kvs = append(kvs, args...)
 	lg.sl.Errorw(msg, kvs...)

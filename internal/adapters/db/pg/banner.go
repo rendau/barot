@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+
 	"github.com/rendau/barot/internal/domain/entities"
 )
 
@@ -60,6 +61,7 @@ func (d *St) BannerList(ctx context.Context, pars entities.BannerListPars) ([]*e
 
 	for rows.Next() {
 		item := &entities.Banner{}
+
 		err = rows.Scan(
 			&item.ID,
 			&item.SlotID,
@@ -70,8 +72,10 @@ func (d *St) BannerList(ctx context.Context, pars entities.BannerListPars) ([]*e
 			d.lg.Errorw(ErrMsg, err)
 			return nil, err
 		}
+
 		items = append(items, item)
 	}
+
 	if err = rows.Err(); err != nil {
 		d.lg.Errorw(ErrMsg, err)
 		return nil, err
@@ -90,7 +94,7 @@ func (d *St) BannerIncClickCount(ctx context.Context, pars entities.BannerStatIn
 
 func (d *St) bannerIncCol(ctx context.Context, col string, pars entities.BannerStatIncPars) error {
 	v := pars.Value
-	if v < 1 {
+	if v == 0 {
 		v = 1
 	}
 

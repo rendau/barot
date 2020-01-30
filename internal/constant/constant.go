@@ -3,7 +3,7 @@ package constant
 type BannerEventType string
 
 const (
-	MabCalcInitValue = float64(999999)
+	MabCalcInitValue = float64(999999) //nolint
 
 	BannerEventTypeShow  = BannerEventType("show")
 	BannerEventTypeClick = BannerEventType("click")

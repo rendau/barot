@@ -1,8 +1,9 @@
 package mock
 
 import (
-	"github.com/rendau/barot/internal/domain/entities"
 	"sync"
+
+	"github.com/rendau/barot/internal/domain/entities"
 )
 
 // St - is type for rabbit-mq client

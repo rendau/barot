@@ -3,12 +3,12 @@ package pg
 import (
 	"context"
 	"fmt"
-	"github.com/rendau/barot/internal/adapters/logger/zap"
+	"time"
 
+	"github.com/rendau/barot/internal/adapters/logger/zap"
 	// driver for migration
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
-	"time"
 )
 
 const (
@@ -34,21 +34,24 @@ func NewSt(dsn string, lg *zap.St) (*St, error) {
 		lg: lg,
 	}
 
-	connectionContext, _ := context.WithTimeout(context.Background(), dbWaitTimeout)
-	res.Db, err = res.dbWait(dsn, connectionContext)
+	connectionContext, connectionContextCancel := context.WithTimeout(context.Background(), dbWaitTimeout)
+	defer connectionContextCancel()
+
+	res.Db, err = res.dbWait(connectionContext, dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	res.Db.SetMaxOpenConns(10)
-	res.Db.SetMaxIdleConns(5)
-	res.Db.SetConnMaxLifetime(10 * time.Minute)
+	res.Db.SetMaxOpenConns(10)                  //nolint
+	res.Db.SetMaxIdleConns(5)                   //nolint
+	res.Db.SetConnMaxLifetime(10 * time.Minute) //nolint
 
 	return res, nil
 }
 
-func (d *St) dbWait(dsn string, ctx context.Context) (*sqlx.DB, error) {
+func (d *St) dbWait(ctx context.Context, dsn string) (*sqlx.DB, error) {
 	var err error
+
 	var cnt uint32
 
 	var db *sqlx.DB
@@ -63,8 +66,10 @@ func (d *St) dbWait(dsn string, ctx context.Context) (*sqlx.DB, error) {
 		if err == nil || ctx.Err() != nil {
 			break
 		}
+
 		time.Sleep(time.Second)
 	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +79,10 @@ func (d *St) dbWait(dsn string, ctx context.Context) (*sqlx.DB, error) {
 		if err == nil || ctx.Err() != nil {
 			break
 		}
+
 		time.Sleep(time.Second)
 	}
+
 	if err != nil {
 		return nil, err
 	}

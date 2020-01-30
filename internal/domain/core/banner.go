@@ -2,10 +2,11 @@ package core
 
 import (
 	"context"
-	"github.com/rendau/barot/internal/constant"
-	"github.com/rendau/barot/internal/domain/entities"
 	"math"
 	"time"
+
+	"github.com/rendau/barot/internal/constant"
+	"github.com/rendau/barot/internal/domain/entities"
 )
 
 func (c *St) BannerCreate(ctx context.Context, obj entities.BannerCreatePars) error {
@@ -16,11 +17,8 @@ func (c *St) BannerDelete(ctx context.Context, pars entities.BannerDeletePars) e
 	return c.db.BannerDelete(ctx, pars)
 }
 
-func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerSelectPars) (int64, error) {
-	banners, err := c.db.BannerList(ctx, entities.BannerListPars{
-		SlotID:    pars.SlotID,
-		UsrTypeID: pars.UsrTypeID,
-	})
+func (c *St) BannerSelectID(ctx context.Context, pars entities.BannerSelectPars) (int64, error) {
+	banners, err := c.db.BannerList(ctx, entities.BannerListPars(pars))
 	if err != nil {
 		return 0, err
 	}
@@ -32,23 +30,22 @@ func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerSelectPars)
 		allBannersShowCount += banner.ShowCnt
 	}
 
-	var selectedBannerId int64
+	var selectedBannerID int64
 
 	// find the best of the best of the best :)
-	var maxPoint float64
-	var point float64
+	var maxPoint, point float64
 	for _, banner := range banners {
 		point = c.MabCalc(banner.ShowCnt, banner.ClickCnt, allBannersShowCount)
-		if point > maxPoint || selectedBannerId == 0 {
-			selectedBannerId = banner.ID
+		if point > maxPoint || selectedBannerID == 0 {
+			selectedBannerID = banner.ID
 			maxPoint = point
 		}
 	}
 
 	// increment show counter
-	if selectedBannerId > 0 {
+	if selectedBannerID > 0 {
 		err = c.db.BannerIncShowCount(ctx, entities.BannerStatIncPars{
-			ID:        selectedBannerId,
+			ID:        selectedBannerID,
 			SlotID:    pars.SlotID,
 			UsrTypeID: pars.UsrTypeID,
 		})
@@ -58,7 +55,7 @@ func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerSelectPars)
 
 		err = c.mq.PublishBannerEvent(&entities.BannerEvent{
 			Type:      constant.BannerEventTypeShow,
-			BannerID:  selectedBannerId,
+			BannerID:  selectedBannerID,
 			SlotID:    pars.SlotID,
 			UsrTypeID: pars.UsrTypeID,
 			DateTime:  time.Now(),
@@ -68,7 +65,7 @@ func (c *St) BannerSelectId(ctx context.Context, pars entities.BannerSelectPars)
 		}
 	}
 
-	return selectedBannerId, nil
+	return selectedBannerID, nil
 }
 
 func (c *St) BannerAddClick(ctx context.Context, pars entities.BannerStatIncPars) error {

@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"log"
+	"os"
+	"testing"
+
 	"github.com/rendau/barot/internal/adapters/db/pg"
 	"github.com/rendau/barot/internal/adapters/logger/zap"
 	mqMock "github.com/rendau/barot/internal/adapters/mq/mock"
@@ -10,13 +14,12 @@ import (
 	"github.com/rendau/barot/internal/domain/entities"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	"log"
-	"os"
-	"testing"
 )
 
 const confFilePath = "conf_test.yml"
+const bannerNote = "some banner note"
 
+//nolint
 var (
 	app = struct {
 		lg *zap.St
@@ -41,6 +44,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer app.lg.Sync()
 
 	app.db, err = pg.NewSt(
@@ -94,17 +98,17 @@ func TestBannerCreation(t *testing.T) {
 	ctx := context.Background()
 
 	var banner1Id int64 = 1
+
 	var banner2Id int64 = 2
 
 	var slot1Id int64 = 1
-	var slot2Id int64 = 2
 
-	note := "some banner note"
+	var slot2Id int64 = 2
 
 	err = app.cr.BannerCreate(ctx, entities.BannerCreatePars{
 		ID:     banner1Id,
 		SlotID: slot1Id,
-		Note:   note,
+		Note:   bannerNote,
 	})
 	require.Nil(t, err)
 
@@ -122,7 +126,7 @@ func TestBannerCreation(t *testing.T) {
 	err = app.cr.BannerCreate(ctx, entities.BannerCreatePars{
 		ID:     banner2Id,
 		SlotID: slot2Id,
-		Note:   note,
+		Note:   bannerNote,
 	})
 	require.Nil(t, err)
 
@@ -158,21 +162,20 @@ func TestBannerSelect(t *testing.T) {
 
 	bIds := []int64{1, 2, 3}
 
-	var slotId int64 = 1
-	var usrTypeId int64 = 1
+	var slotID int64 = 1
 
-	note := "some banner note"
+	var usrTypeID int64 = 1
 
-	for _, bId := range bIds {
+	for _, bID := range bIds {
 		err = app.cr.BannerCreate(ctx, entities.BannerCreatePars{
-			ID:     bId,
-			SlotID: slotId,
-			Note:   note,
+			ID:     bID,
+			SlotID: slotID,
+			Note:   bannerNote,
 		})
 		require.Nil(t, err)
 	}
 
-	banners, err := selectBannerInLoop(ctx, slotId, usrTypeId, 90)
+	banners, err := selectBannerInLoop(ctx, slotID, usrTypeID, 90)
 	require.Nil(t, err)
 	require.Equal(t, 3, len(banners))
 	require.Equal(t, banners[bIds[0]].ShowCnt, banners[bIds[1]].ShowCnt)
@@ -180,43 +183,46 @@ func TestBannerSelect(t *testing.T) {
 
 	err = app.cr.BannerAddClick(ctx, entities.BannerStatIncPars{
 		ID:        bIds[0],
-		SlotID:    slotId,
-		UsrTypeID: usrTypeId,
-		Value:     2,
+		SlotID:    slotID,
+		UsrTypeID: usrTypeID,
+		Value:     2, //nolint
 	})
 	require.Nil(t, err)
 
 	err = app.cr.BannerAddClick(ctx, entities.BannerStatIncPars{
 		ID:        bIds[1],
-		SlotID:    slotId,
-		UsrTypeID: usrTypeId,
+		SlotID:    slotID,
+		UsrTypeID: usrTypeID,
 	})
 	require.Nil(t, err)
 
-	banners, err = selectBannerInLoop(ctx, slotId, usrTypeId, 90)
+	banners, err = selectBannerInLoop(ctx, slotID, usrTypeID, 90)
 	require.Nil(t, err)
 	require.Equal(t, 3, len(banners))
 	require.True(t, banners[bIds[0]].ShowCnt > banners[bIds[1]].ShowCnt)
 	require.True(t, banners[bIds[1]].ShowCnt > banners[bIds[2]].ShowCnt)
 }
 
-func selectBannerInLoop(ctx context.Context, slotId, usrTypeId int64, n int) (map[int64]*entities.Banner, error) {
+func selectBannerInLoop(ctx context.Context, slotID, usrTypeID int64, n int) (map[int64]*entities.Banner, error) {
 	var err error
 
 	for i := 0; i < n; i++ {
-		_, err = app.cr.BannerSelectId(ctx, entities.BannerSelectPars{
-			SlotID:    slotId,
-			UsrTypeID: usrTypeId,
+		_, err = app.cr.BannerSelectID(ctx, entities.BannerSelectPars{
+			SlotID:    slotID,
+			UsrTypeID: usrTypeID,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	var banners []*entities.Banner
+
 	banners, err = app.db.BannerList(ctx, entities.BannerListPars{
-		SlotID:    slotId,
-		UsrTypeID: usrTypeId,
+		SlotID:    slotID,
+		UsrTypeID: usrTypeID,
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -237,45 +243,47 @@ func TestBannerEvent(t *testing.T) {
 
 	ctx := context.Background()
 
-	var bannerId int64 = 1
-	var selectedBannerId int64
-	var slotId int64 = 1
-	var usrTypeId int64 = 1
-	note := "some banner note"
+	var bannerID int64 = 1
+
+	var selectedBannerID int64
+
+	var slotID int64 = 1
+
+	var usrTypeID int64 = 1
 
 	err = app.cr.BannerCreate(ctx, entities.BannerCreatePars{
-		ID:     bannerId,
-		SlotID: slotId,
-		Note:   note,
+		ID:     bannerID,
+		SlotID: slotID,
+		Note:   bannerNote,
 	})
 	require.Nil(t, err)
 
-	selectedBannerId, err = app.cr.BannerSelectId(ctx, entities.BannerSelectPars{
-		SlotID:    slotId,
-		UsrTypeID: usrTypeId,
+	selectedBannerID, err = app.cr.BannerSelectID(ctx, entities.BannerSelectPars{
+		SlotID:    slotID,
+		UsrTypeID: usrTypeID,
 	})
 	require.Nil(t, err)
-	require.Equal(t, bannerId, selectedBannerId)
+	require.Equal(t, bannerID, selectedBannerID)
 
 	events := app.mq.PullAll()
 	require.Equal(t, 1, len(events))
 	require.Equal(t, constant.BannerEventTypeShow, events[0].Type)
-	require.Equal(t, selectedBannerId, events[0].BannerID)
-	require.Equal(t, slotId, events[0].SlotID)
-	require.Equal(t, usrTypeId, events[0].UsrTypeID)
+	require.Equal(t, selectedBannerID, events[0].BannerID)
+	require.Equal(t, slotID, events[0].SlotID)
+	require.Equal(t, usrTypeID, events[0].UsrTypeID)
 
 	err = app.cr.BannerAddClick(ctx, entities.BannerStatIncPars{
-		ID:        bannerId,
-		SlotID:    slotId,
-		UsrTypeID: usrTypeId,
-		Value:     2,
+		ID:        bannerID,
+		SlotID:    slotID,
+		UsrTypeID: usrTypeID,
+		Value:     2, //nolint
 	})
 	require.Nil(t, err)
 
 	events = app.mq.PullAll()
 	require.Equal(t, 1, len(events))
 	require.Equal(t, constant.BannerEventTypeClick, events[0].Type)
-	require.Equal(t, selectedBannerId, events[0].BannerID)
-	require.Equal(t, slotId, events[0].SlotID)
-	require.Equal(t, usrTypeId, events[0].UsrTypeID)
+	require.Equal(t, selectedBannerID, events[0].BannerID)
+	require.Equal(t, slotID, events[0].SlotID)
+	require.Equal(t, usrTypeID, events[0].UsrTypeID)
 }

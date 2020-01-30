@@ -2,19 +2,21 @@ package cmd
 
 import (
 	"context"
-	"github.com/rendau/barot/internal/adapters/db/pg"
-	"github.com/rendau/barot/internal/adapters/http_api"
-	"github.com/rendau/barot/internal/adapters/logger/zap"
-	"github.com/rendau/barot/internal/adapters/mq/rmq"
-	"github.com/rendau/barot/internal/domain/core"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/rendau/barot/internal/adapters/db/pg"
+	"github.com/rendau/barot/internal/adapters/httpapi"
+	"github.com/rendau/barot/internal/adapters/logger/zap"
+	"github.com/rendau/barot/internal/adapters/mq/rmq"
+	"github.com/rendau/barot/internal/domain/core"
+	"github.com/spf13/viper"
 )
 
+//nolint
 // Execute - executes root command
 func Execute() {
 	var err error
@@ -29,6 +31,7 @@ func Execute() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer lg.Sync()
 
 	db, err := pg.NewSt(
@@ -53,7 +56,7 @@ func Execute() {
 		mq,
 	)
 
-	httpApi := http_api.CreateApi(
+	httpAPIInst := httpapi.CreateAPI(
 		lg,
 		viper.GetString("http_listen"),
 		cr,
@@ -61,7 +64,7 @@ func Execute() {
 
 	lg.Infow("Starting", "http_listen", viper.GetString("http_listen"))
 
-	httpApi.Start()
+	httpAPIInst.Start()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -70,14 +73,16 @@ func Execute() {
 
 	select {
 	case <-stop:
-	case <-httpApi.Wait():
+	case <-httpAPIInst.Wait():
 		exitCode = 1
 	}
 
 	lg.Infow("Shutting down...")
 
-	ctx, _ := context.WithTimeout(context.Background(), 20*time.Second)
-	err = httpApi.Shutdown(ctx)
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 20*time.Second) //nolint
+	defer ctxCancel()
+
+	err = httpAPIInst.Shutdown(ctx)
 	if err != nil {
 		lg.Errorw("Fail to shutdown http-api", err)
 		exitCode = 1
@@ -90,6 +95,7 @@ func loadConf() {
 	confFilePath := os.Getenv("CONF_PATH")
 	if confFilePath != "" {
 		viper.SetConfigFile(confFilePath)
+
 		err := viper.ReadInConfig()
 		if err != nil {
 			log.Fatal(err)

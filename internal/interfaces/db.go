@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+
 	"github.com/rendau/barot/internal/domain/entities"
 )
 

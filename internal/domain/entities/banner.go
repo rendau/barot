@@ -1,8 +1,9 @@
 package entities
 
 import (
-	"github.com/rendau/barot/internal/constant"
 	"time"
+
+	"github.com/rendau/barot/internal/constant"
 )
 
 // Banner is type for banner
