@@ -29,6 +29,7 @@ func (q *St) PublishBannerEvent(event *entities.BannerEvent) error {
 	return nil
 }
 
+// PullAll is pulls all
 func (q *St) PullAll() []*entities.BannerEvent {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -40,6 +41,7 @@ func (q *St) PullAll() []*entities.BannerEvent {
 	return res
 }
 
+// Clean is cleans
 func (q *St) Clean() {
 	_ = q.PullAll()
 }

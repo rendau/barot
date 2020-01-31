@@ -9,14 +9,17 @@ import (
 	"github.com/rendau/barot/internal/domain/entities"
 )
 
+// BannerCreate is for BannerCreate
 func (c *St) BannerCreate(ctx context.Context, obj entities.BannerCreatePars) error {
 	return c.db.BannerCreate(ctx, obj)
 }
 
+// BannerDelete is for BannerDelete
 func (c *St) BannerDelete(ctx context.Context, pars entities.BannerDeletePars) error {
 	return c.db.BannerDelete(ctx, pars)
 }
 
+// BannerSelectID is for BannerSelectID
 func (c *St) BannerSelectID(ctx context.Context, pars entities.BannerSelectPars) (int64, error) {
 	banners, err := c.db.BannerList(ctx, entities.BannerListPars(pars))
 	if err != nil {
@@ -68,6 +71,7 @@ func (c *St) BannerSelectID(ctx context.Context, pars entities.BannerSelectPars)
 	return selectedBannerID, nil
 }
 
+// BannerAddClick is for BannerAddClick
 func (c *St) BannerAddClick(ctx context.Context, pars entities.BannerStatIncPars) error {
 	err := c.db.BannerIncClickCount(ctx, pars)
 	if err != nil {

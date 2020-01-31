@@ -9,6 +9,7 @@ import (
 	"github.com/rendau/barot/internal/interfaces"
 )
 
+// API is type for api
 type API struct {
 	lg     interfaces.Logger
 	server *http.Server
@@ -17,6 +18,7 @@ type API struct {
 	lChan chan error
 }
 
+// CreateAPI creates API instance
 func CreateAPI(
 	lg interfaces.Logger,
 	listen string,
@@ -38,6 +40,7 @@ func CreateAPI(
 	return api
 }
 
+// Start is for Start
 func (a *API) Start() {
 	go func() {
 		err := a.server.ListenAndServe()
@@ -48,10 +51,12 @@ func (a *API) Start() {
 	}()
 }
 
+// Wait is for Wait
 func (a *API) Wait() <-chan error {
 	return a.lChan
 }
 
+// Shutdown is for Shutdown
 func (a *API) Shutdown(ctx context.Context) error {
 	return a.server.Shutdown(ctx)
 }

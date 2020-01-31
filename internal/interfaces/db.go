@@ -6,6 +6,7 @@ import (
 	"github.com/rendau/barot/internal/domain/entities"
 )
 
+// Db is interface for db
 type Db interface {
 	// banner
 	BannerCreate(ctx context.Context, pars entities.BannerCreatePars) error

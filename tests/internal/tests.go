@@ -16,19 +16,21 @@ const (
 
 // Tests - is type for tests
 type Tests struct {
-	apiUrl string
+	apiURL string
 
 	responseStatusCode int
 	showCounts         map[int64]int64
 }
 
-func NewTests(apiUrl string) *Tests {
+// NewTests is creates Tests instance
+func NewTests(apiURL string) *Tests {
 	return &Tests{
-		apiUrl:     apiUrl,
+		apiURL:     apiURL,
 		showCounts: map[int64]int64{},
 	}
 }
 
+// Run is for run tests
 func (t *Tests) Run(outFormat, featuresPath string) int {
 	ctx, _ := context.WithTimeout(context.Background(), servicesWaitTimeout)
 	err := t.waitServices(ctx)
@@ -54,7 +56,7 @@ func (t *Tests) waitServices(ctx context.Context) error {
 
 	client := http.Client{Timeout: 1 * time.Second}
 
-	req, err = http.NewRequestWithContext(ctx, "GET", t.apiUrl+"/ready", nil)
+	req, err = http.NewRequestWithContext(ctx, "GET", t.apiURL+"/ready", nil)
 	if err != nil {
 		return err
 	}

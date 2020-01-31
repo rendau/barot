@@ -8,11 +8,13 @@ import (
 
 const callerSkip = 1
 
+// St is type for st
 type St struct {
 	l  *zap.Logger
 	sl *zap.SugaredLogger
 }
 
+// NewSt creates new instance of St
 func NewSt(level string, debug, test bool) (*St, error) {
 	var err error
 
@@ -52,14 +54,17 @@ func NewSt(level string, debug, test bool) (*St, error) {
 	return logger, nil
 }
 
+// Fatal is for Fatal
 func (lg *St) Fatal(args ...interface{}) {
 	lg.sl.Fatal(args...)
 }
 
+// Fatalf is for Fatalf
 func (lg *St) Fatalf(tmpl string, args ...interface{}) {
 	lg.sl.Fatalf(tmpl, args...)
 }
 
+// Fatalw is for Fatalw
 func (lg *St) Fatalw(msg string, err interface{}, args ...interface{}) {
 	kvs := make([]interface{}, 0, len(args)+2) //nolint
 	kvs = append(kvs, "error", err)
@@ -67,14 +72,17 @@ func (lg *St) Fatalw(msg string, err interface{}, args ...interface{}) {
 	lg.sl.Fatalw(msg, kvs...)
 }
 
+// Error is for Error
 func (lg *St) Error(args ...interface{}) {
 	lg.sl.Error(args...)
 }
 
+// Errorf is for Errorf
 func (lg *St) Errorf(tmpl string, args ...interface{}) {
 	lg.sl.Errorf(tmpl, args...)
 }
 
+// Errorw is for Errorw
 func (lg *St) Errorw(msg string, err interface{}, args ...interface{}) {
 	kvs := make([]interface{}, 0, len(args)+2) //nolint
 	kvs = append(kvs, "error", err)
@@ -82,42 +90,52 @@ func (lg *St) Errorw(msg string, err interface{}, args ...interface{}) {
 	lg.sl.Errorw(msg, kvs...)
 }
 
+// Warn is for Warn
 func (lg *St) Warn(args ...interface{}) {
 	lg.sl.Warn(args...)
 }
 
+// Warnf is for Warnf
 func (lg *St) Warnf(tmpl string, args ...interface{}) {
 	lg.sl.Warnf(tmpl, args...)
 }
 
+// Warnw is for Warnw
 func (lg *St) Warnw(msg string, args ...interface{}) {
 	lg.sl.Warnw(msg, args...)
 }
 
+// Info is for Info
 func (lg *St) Info(args ...interface{}) {
 	lg.sl.Info(args...)
 }
 
+// Infof is for Infof
 func (lg *St) Infof(tmpl string, args ...interface{}) {
 	lg.sl.Infof(tmpl, args...)
 }
 
+// Infow is for Infow
 func (lg *St) Infow(msg string, args ...interface{}) {
 	lg.sl.Infow(msg, args...)
 }
 
+// Debug is for Debug
 func (lg *St) Debug(args ...interface{}) {
 	lg.sl.Debug(args...)
 }
 
+// Debugf is for Debugf
 func (lg *St) Debugf(tmpl string, args ...interface{}) {
 	lg.sl.Debugf(tmpl, args...)
 }
 
+// Debugw is for Debugw
 func (lg *St) Debugw(msg string, args ...interface{}) {
 	lg.sl.Debugw(msg, args...)
 }
 
+// Sync is for sync
 func (lg *St) Sync() {
 	err := lg.sl.Sync()
 	if err != nil {

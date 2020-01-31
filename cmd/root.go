@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-//nolint
 // Execute - executes root command
 func Execute() {
 	var err error

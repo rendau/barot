@@ -7,7 +7,7 @@ import (
 	"github.com/DATA-DOG/godog/gherkin"
 )
 
-func (t *Tests) iRequestToCreateBannerWithData(bannerId int, data *gherkin.DocString) error {
+func (t *Tests) iRequestToCreateBannerWithData(bannerID int, data *gherkin.DocString) error {
 	banner := BannerC{}
 	err := json.Unmarshal([]byte(data.Content), &banner)
 	if err != nil {
@@ -33,24 +33,24 @@ func (t *Tests) theResponseCodeShouldBe(code int) error {
 
 func (t *Tests) iRequestBannerToShowForTimes(n int) error {
 	for i := 0; i < n; i++ {
-		bannerId, err := t.uSelectBanner(slot1Id, usrType1Id)
+		bannerID, err := t.uSelectBanner(slot1Id, usrType1Id)
 		if err != nil {
 			return err
 		}
-		t.showCounts[bannerId] += 1
+		t.showCounts[bannerID]++
 	}
 	return nil
 }
 
-func (t *Tests) iWillGetShowsForBanner(showCount, bannerId int) error {
-	if t.showCounts[int64(bannerId)] != int64(showCount) {
-		return fmt.Errorf("show counts not equal, expected %d, got %d", showCount, t.showCounts[int64(bannerId)])
+func (t *Tests) iWillGetShowsForBanner(showCount, bannerID int) error {
+	if t.showCounts[int64(bannerID)] != int64(showCount) {
+		return fmt.Errorf("show counts not equal, expected %d, got %d", showCount, t.showCounts[int64(bannerID)])
 	}
 	return nil
 }
 
-func (t *Tests) iRequestClickForBanner(bannerId int) error {
-	sc, err := t.uBannerAddClick(slot1Id, int64(bannerId), usrType1Id)
+func (t *Tests) iRequestClickForBanner(bannerID int) error {
+	sc, err := t.uBannerAddClick(slot1Id, int64(bannerID), usrType1Id)
 	if err != nil {
 		return err
 	}
@@ -60,17 +60,17 @@ func (t *Tests) iRequestClickForBanner(bannerId int) error {
 	return nil
 }
 
-func (t *Tests) bannerShowCountMustBeGreaterThanBannerShowCount(bannerId1, bannerId2 int) error {
-	showCount1 := t.showCounts[int64(bannerId1)]
-	showCount2 := t.showCounts[int64(bannerId2)]
+func (t *Tests) bannerShowCountMustBeGreaterThanBannerShowCount(bannerID1, bannerID2 int) error {
+	showCount1 := t.showCounts[int64(bannerID1)]
+	showCount2 := t.showCounts[int64(bannerID2)]
 	if showCount1 <= showCount2 {
 		return fmt.Errorf("%d is not grater than %d", showCount1, showCount2)
 	}
 	return nil
 }
 
-func (t *Tests) iRequestToDeleteBanner(bannerId int) error {
-	sc, err := t.uDeleteBanner(slot1Id, int64(bannerId))
+func (t *Tests) iRequestToDeleteBanner(bannerID int) error {
+	sc, err := t.uDeleteBanner(slot1Id, int64(bannerID))
 	if err != nil {
 		return err
 	}
@@ -80,6 +80,7 @@ func (t *Tests) iRequestToDeleteBanner(bannerId int) error {
 	return nil
 }
 
+// FeatureContext is starting point of tests
 func (t *Tests) FeatureContext(s *godog.Suite) {
 	s.Step(`^I request to create banner (\d+) with data:$`, t.iRequestToCreateBannerWithData)
 	s.Step(`^The response code should be (\d+)$`, t.theResponseCodeShouldBe)

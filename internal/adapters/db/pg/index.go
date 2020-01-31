@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// ErrMsg is for ErrMsg
 	ErrMsg        = "PG-error"
 	dbWaitTimeout = 30 * time.Second
 )

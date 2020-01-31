@@ -6,6 +6,7 @@ import (
 	"github.com/rendau/barot/internal/domain/entities"
 )
 
+// BannerCreate is for BannerCreate
 func (d *St) BannerCreate(ctx context.Context, pars entities.BannerCreatePars) error {
 	_, err := d.Db.ExecContext(ctx, `
 		with u1 as (
@@ -25,6 +26,7 @@ func (d *St) BannerCreate(ctx context.Context, pars entities.BannerCreatePars) e
 	return nil
 }
 
+// BannerDelete is for BannerDelete
 func (d *St) BannerDelete(ctx context.Context, pars entities.BannerDeletePars) error {
 	var err error
 
@@ -40,6 +42,7 @@ func (d *St) BannerDelete(ctx context.Context, pars entities.BannerDeletePars) e
 	return nil
 }
 
+// BannerList is for BannerList
 func (d *St) BannerList(ctx context.Context, pars entities.BannerListPars) ([]*entities.Banner, error) {
 	rows, err := d.Db.QueryxContext(ctx, `
 		select b.id,
@@ -84,14 +87,17 @@ func (d *St) BannerList(ctx context.Context, pars entities.BannerListPars) ([]*e
 	return items, nil
 }
 
+// BannerIncShowCount is for BannerIncShowCount
 func (d *St) BannerIncShowCount(ctx context.Context, pars entities.BannerStatIncPars) error {
 	return d.bannerIncCol(ctx, "show_cnt", pars)
 }
 
+// BannerIncClickCount is for BannerIncClickCount
 func (d *St) BannerIncClickCount(ctx context.Context, pars entities.BannerStatIncPars) error {
 	return d.bannerIncCol(ctx, "click_cnt", pars)
 }
 
+// bannerIncCol is for bannerIncCol
 func (d *St) bannerIncCol(ctx context.Context, col string, pars entities.BannerStatIncPars) error {
 	v := pars.Value
 	if v == 0 {
