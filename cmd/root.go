@@ -17,6 +17,7 @@ import (
 )
 
 // Execute - executes root command
+//nolint
 func Execute() {
 	var err error
 
@@ -84,6 +85,7 @@ func Execute() {
 	err = httpAPIInst.Shutdown(ctx)
 	if err != nil {
 		lg.Errorw("Fail to shutdown http-api", err)
+
 		exitCode = 1
 	}
 
