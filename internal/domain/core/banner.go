@@ -43,7 +43,7 @@ func (c *St) BannerSelectID(ctx context.Context, pars entities.BannerSelectPars)
 	}
 
 	// increment show counter
-	if selectedBannerID > 0     {
+	if selectedBannerID > 0 {
 		err = c.db.BannerIncShowCount(ctx, entities.BannerStatIncPars{
 			ID:        selectedBannerID,
 			SlotID:    pars.SlotID,
