@@ -1,5 +1,7 @@
 Banner rotation service
 
+https://github.com/rendau/barot/workflows/deploy/badge.svg
+
 migration command example:
     docker run --rm -it -v "$(pwd)/migrations:/migrations:ro" --network network_name migrate/migrate:latest \
         -path /migrations \
