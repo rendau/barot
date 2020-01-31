@@ -19,7 +19,7 @@ jobs:
 
       - name: go fmt
         run: |
-          go fmt ./...
+          bash `if [[ $(go fmt ./...) ]]; then exit 1; fi;`
 
       - name: go vet
         run: |
