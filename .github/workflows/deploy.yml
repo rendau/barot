@@ -13,6 +13,10 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
 
+      - name: go mod download
+        run: |
+          go mod download
+
       - name: go fmt
         run: |
           if [[ $(go fmt ./...) ]]; then exit 1; fi;
@@ -29,10 +33,6 @@ jobs:
       - name: start pg
         run: |
           docker-compose -f docker-compose.pg.yml up -d
-
-      - name: go mod download
-        run: |
-          go mod download
 
       - name: go test
         env:
