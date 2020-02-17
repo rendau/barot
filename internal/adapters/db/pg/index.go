@@ -17,21 +17,21 @@ const (
 	dbWaitTimeout = 30 * time.Second
 )
 
-// St - is type for pg-Db
-type St struct {
-	lg *zap.St
+// PostgresDB - is type for pg-Db
+type PostgresDB struct {
+	lg *zap.Logger
 	Db *sqlx.DB
 }
 
-// NewSt - creates new St instance
-func NewSt(dsn string, lg *zap.St) (*St, error) {
+// NewPostgresDB - creates new PostgresDB instance
+func NewPostgresDB(dsn string, lg *zap.Logger) (*PostgresDB, error) {
 	var err error
 
 	if dsn == "" {
 		return nil, fmt.Errorf("bad dsn for postgresql")
 	}
 
-	res := &St{
+	res := &PostgresDB{
 		lg: lg,
 	}
 
@@ -43,14 +43,14 @@ func NewSt(dsn string, lg *zap.St) (*St, error) {
 		return nil, err
 	}
 
-	res.Db.SetMaxOpenConns(10)                  //nolint
-	res.Db.SetMaxIdleConns(5)                   //nolint
-	res.Db.SetConnMaxLifetime(10 * time.Minute) //nolint
+	res.Db.SetMaxOpenConns(10)
+	res.Db.SetMaxIdleConns(5)
+	res.Db.SetConnMaxLifetime(10 * time.Minute)
 
 	return res, nil
 }
 
-func (d *St) dbWait(ctx context.Context, dsn string) (*sqlx.DB, error) {
+func (d *PostgresDB) dbWait(ctx context.Context, dsn string) (*sqlx.DB, error) {
 	var err error
 
 	var cnt uint32

@@ -5,7 +5,7 @@ type BannerEventType string
 
 const (
 	// MabCalcInitValue is constant
-	MabCalcInitValue = float64(999999) //nolint
+	MabCalcInitValue = float64(999999)
 
 	// BannerEventTypeShow is constant
 	BannerEventTypeShow = BannerEventType("show")

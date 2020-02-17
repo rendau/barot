@@ -6,21 +6,21 @@ import (
 	"github.com/rendau/barot/internal/domain/entities"
 )
 
-// St - is type for rabbit-mq client
-type St struct {
+// MessageQueueMock - is type for rabbit-mq client
+type MessageQueueMock struct {
 	q  []*entities.BannerEvent
 	mu sync.Mutex
 }
 
-// NewSt - creates new St instance
-func NewSt() *St {
-	return &St{
+// NewMessageQueueMock - creates new MessageQueueMock instance
+func NewMessageQueueMock() *MessageQueueMock {
+	return &MessageQueueMock{
 		q: make([]*entities.BannerEvent, 0),
 	}
 }
 
 // PublishBannerEvent - publishes event to mq
-func (q *St) PublishBannerEvent(event *entities.BannerEvent) error {
+func (q *MessageQueueMock) PublishBannerEvent(event *entities.BannerEvent) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -30,7 +30,7 @@ func (q *St) PublishBannerEvent(event *entities.BannerEvent) error {
 }
 
 // PullAll is pulls all
-func (q *St) PullAll() []*entities.BannerEvent {
+func (q *MessageQueueMock) PullAll() []*entities.BannerEvent {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -42,6 +42,6 @@ func (q *St) PullAll() []*entities.BannerEvent {
 }
 
 // Clean is cleans
-func (q *St) Clean() {
+func (q *MessageQueueMock) Clean() {
 	_ = q.PullAll()
 }

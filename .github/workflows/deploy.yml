@@ -28,21 +28,12 @@ jobs:
 
       - name: golangci-lint
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./ v1.23.1
-          ./golangci-lint run -v --enable-all
-
-      - name: start pg
-        run: |
-          docker-compose -f docker-compose.pg.yml up -d
+          docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.23.6 golangci-lint run -v
 
       - name: go test
-        env:
-          PG_DSN: postgres://postgres:12345@localhost:5432/postgres?sslmode=disable
         run: |
           go test
 
       - name: go test -race
-        env:
-          PG_DSN: postgres://postgres:12345@localhost:5432/postgres?sslmode=disable
         run: |
           go test -race

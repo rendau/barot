@@ -15,18 +15,18 @@ const (
 	queueName             = "banner_notify"
 )
 
-// St - is type for rabbit-mq client
-type St struct {
+// RabbitMQ - is type for rabbit-mq client
+type RabbitMQ struct {
 	lg  interfaces.Logger
 	con *amqp.Connection
 	ch  *amqp.Channel
 }
 
-// NewSt - creates new St instance
-func NewSt(dsn string, lg interfaces.Logger) (*St, error) {
+// NewRabbitMQ - creates new RabbitMQ instance
+func NewRabbitMQ(dsn string, lg interfaces.Logger) (*RabbitMQ, error) {
 	var err error
 
-	res := &St{
+	res := &RabbitMQ{
 		lg: lg,
 	}
 
@@ -61,7 +61,7 @@ func NewSt(dsn string, lg interfaces.Logger) (*St, error) {
 	return res, nil
 }
 
-func (q *St) connectionWait(ctx context.Context, dsn string) (*amqp.Connection, error) {
+func (q *RabbitMQ) connectionWait(ctx context.Context, dsn string) (*amqp.Connection, error) {
 	var err error
 
 	var res *amqp.Connection
@@ -79,7 +79,7 @@ func (q *St) connectionWait(ctx context.Context, dsn string) (*amqp.Connection, 
 }
 
 // PublishBannerEvent - publishes event to mq
-func (q *St) PublishBannerEvent(event *entities.BannerEvent) error {
+func (q *RabbitMQ) PublishBannerEvent(event *entities.BannerEvent) error {
 	eventBytes, err := json.Marshal(struct {
 		Type      string    `json:"type"`
 		BannerID  int64     `json:"banner_id"`
@@ -113,7 +113,7 @@ func (q *St) PublishBannerEvent(event *entities.BannerEvent) error {
 }
 
 // Stop - stops mq
-func (q *St) Stop() {
+func (q *RabbitMQ) Stop() {
 	err := q.ch.Close()
 	if err != nil {
 		q.lg.Errorw("Fail to close channel", err)

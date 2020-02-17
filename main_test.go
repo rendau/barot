@@ -6,25 +6,22 @@ import (
 	"os"
 	"testing"
 
-	"github.com/rendau/barot/internal/adapters/db/pg"
+	dbMem "github.com/rendau/barot/internal/adapters/db/mem"
 	"github.com/rendau/barot/internal/adapters/logger/zap"
 	mqMock "github.com/rendau/barot/internal/adapters/mq/mock"
 	"github.com/rendau/barot/internal/constant"
 	"github.com/rendau/barot/internal/domain/core"
 	"github.com/rendau/barot/internal/domain/entities"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
-const confFilePath = "conf_test.yml"
 const bannerNote = "some banner note"
 
-//nolint
 var (
 	app = struct {
-		lg *zap.St
-		db *pg.St
-		mq *mqMock.St
+		lg *zap.Logger
+		db *dbMem.MemoryDB
+		mq *mqMock.MessageQueueMock
 		cr *core.St
 	}{}
 )
@@ -32,56 +29,26 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	viper.SetConfigFile(confFilePath)
-	_ = viper.ReadInConfig()
-	viper.AutomaticEnv()
-
-	app.lg, err = zap.NewSt(
-		viper.GetString("log_level"),
-		true,
-		true,
-	)
+	app.lg, err = zap.NewLogger("debug", true, false)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer app.lg.Sync()
 
-	app.db, err = pg.NewSt(
-		viper.GetString("pg_dsn"),
-		app.lg,
-	)
-	if err != nil {
-		app.lg.Fatal(err)
-	}
+	app.db = dbMem.NewMemoryDB(app.lg)
 
-	app.mq = mqMock.NewSt()
+	app.mq = mqMock.NewMessageQueueMock()
 
-	app.cr = core.NewSt(
-		app.lg,
-		app.db,
-		app.mq,
-	)
+	app.cr = core.NewSt(app.lg, app.db, app.mq)
 
 	ec := m.Run()
+
 	os.Exit(ec)
 }
 
 func cleanCtx() {
-	_, err := app.db.Db.Exec(`
-		truncate stat restart identity cascade
-	`)
-	if err != nil {
-		app.lg.Fatal(err)
-	}
-
-	_, err = app.db.Db.Exec(`
-		truncate banner restart identity cascade
-	`)
-	if err != nil {
-		app.lg.Fatal(err)
-	}
-
+	app.db.Clean()
 	app.mq.Clean()
 }
 
@@ -185,7 +152,7 @@ func TestBannerSelect(t *testing.T) {
 		ID:        bIds[0],
 		SlotID:    slotID,
 		UsrTypeID: usrTypeID,
-		Value:     2, //nolint
+		Value:     2,
 	})
 	require.Nil(t, err)
 
@@ -276,7 +243,7 @@ func TestBannerEvent(t *testing.T) {
 		ID:        bannerID,
 		SlotID:    slotID,
 		UsrTypeID: usrTypeID,
-		Value:     2, //nolint
+		Value:     2,
 	})
 	require.Nil(t, err)
 

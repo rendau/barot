@@ -17,50 +17,32 @@ import (
 )
 
 // Execute - executes root command
-//nolint
+// nolint:funlen
 func Execute() {
 	var err error
 
 	loadConf()
 
-	lg, err := zap.NewSt(
-		viper.GetString("log_level"),
-		true,
-		true,
-	)
+	lg, err := zap.NewLogger(viper.GetString("log_level"), true, true)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer lg.Sync()
 
-	db, err := pg.NewSt(
-		viper.GetString("pg_dsn"),
-		lg,
-	)
+	db, err := pg.NewPostgresDB(viper.GetString("pg_dsn"), lg)
 	if err != nil {
 		lg.Fatal(err)
 	}
 
-	mq, err := rmq.NewSt(
-		viper.GetString("rmq_dsn"),
-		lg,
-	)
+	mq, err := rmq.NewRabbitMQ(viper.GetString("rmq_dsn"), lg)
 	if err != nil {
 		lg.Fatal(err)
 	}
 
-	cr := core.NewSt(
-		lg,
-		db,
-		mq,
-	)
+	cr := core.NewSt(lg, db, mq)
 
-	httpAPIInst := httpapi.CreateAPI(
-		lg,
-		viper.GetString("http_listen"),
-		cr,
-	)
+	httpAPIInst := httpapi.CreateAPI(lg, viper.GetString("http_listen"), cr)
 
 	lg.Infow("Starting", "http_listen", viper.GetString("http_listen"))
 
@@ -79,7 +61,7 @@ func Execute() {
 
 	lg.Infow("Shutting down...")
 
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 20*time.Second) //nolint
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer ctxCancel()
 
 	err = httpAPIInst.Shutdown(ctx)

@@ -25,7 +25,7 @@ func (a *API) createRouter() http.Handler {
 	h = cors.New(cors.Options{
 		AllowedMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowedHeaders: []string{"Accept", "Content-Type", "X-Requested-With"},
-		MaxAge:         604800, //nolint
+		MaxAge:         604800,
 	}).Handler(h)
 	h = a.mwRecovery(h)
 

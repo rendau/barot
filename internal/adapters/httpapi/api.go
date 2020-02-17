@@ -33,8 +33,8 @@ func CreateAPI(
 	api.server = &http.Server{
 		Addr:         listen,
 		Handler:      api.createRouter(),
-		ReadTimeout:  20 * time.Minute, //nolint
-		WriteTimeout: 20 * time.Second, //nolint
+		ReadTimeout:  20 * time.Minute,
+		WriteTimeout: 20 * time.Second,
 	}
 
 	return api
