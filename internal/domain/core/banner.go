@@ -38,7 +38,7 @@ func (c *St) BannerSelectID(ctx context.Context, pars entities.BannerSelectPars)
 	// find the best of the best of the best :)
 	var maxPoint, point float64
 	for _, banner := range banners {
-		point = c.MabCalc(banner.ShowCnt, banner.ClickCnt, allBannersShowCount)
+		point = c.MultiArmedBanditCalculate(banner.ShowCnt, banner.ClickCnt, allBannersShowCount)
 		if point > maxPoint || selectedBannerID == 0 {
 			selectedBannerID = banner.ID
 			maxPoint = point
@@ -92,8 +92,8 @@ func (c *St) BannerAddClick(ctx context.Context, pars entities.BannerStatIncPars
 	return nil
 }
 
-// MabCalc is calculates "multiarmed bandit" algorithm by input args
-func (c *St) MabCalc(bannerShowCount, bannerClickCount, allBannersShowCount int64) float64 {
+// MultiArmedBanditCalculate is calculates "multi-armed bandit" algorithm by input args
+func (c *St) MultiArmedBanditCalculate(bannerShowCount, bannerClickCount, allBannersShowCount int64) float64 {
 	if bannerShowCount == 0 {
 		return constant.MabCalcInitValue
 	}

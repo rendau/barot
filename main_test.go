@@ -53,7 +53,7 @@ func cleanCtx() {
 }
 
 func TestMabCalc(t *testing.T) {
-	v := app.cr.MabCalc(0, 0, 100)
+	v := app.cr.MultiArmedBanditCalculate(0, 0, 100)
 	require.Equal(t, constant.MabCalcInitValue, v)
 }
 
